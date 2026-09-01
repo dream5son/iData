@@ -1,0 +1,1 @@
+"""IDI metadata package skeleton."""
