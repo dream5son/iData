@@ -7,7 +7,6 @@
     "apps/ida/frontend",
     "apps/ida/backend",
     "apps/idi/frontend",
-    "apps/idi/backend",
     "apps/shared/types",
     "apps/shared/proto"
   ]

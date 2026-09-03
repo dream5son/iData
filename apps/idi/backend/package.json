@@ -1,7 +1,0 @@
-{
-  "name": "@idata/idi-backend",
-  "version": "0.1.0",
-  "private": true,
-  "description": "IDI backend skeleton",
-  "type": "module"
-}

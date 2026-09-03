@@ -17,8 +17,6 @@ apps/
   shared/
     types/
     proto/
-platform/
-  governance-python/
 docs/
 ```
 
@@ -28,8 +26,7 @@ docs/
 - `apps/ida/backend`: 面向终端用户的编排与执行后端骨架
 - `apps/ida/backend/sandbox`: 面向 IDA 的 Python 数据后处理沙箱骨架
 - `apps/idi/frontend`: 面向实施工程师的治理与配置前端骨架
-- `apps/idi/backend`: 面向实施工程师的实施与管理后端骨架
+- `apps/idi/backend`: 面向实施工程师的 Python 后端骨架
 - `apps/idi/backend/metadata`: 面向 IDI 的元数据处理骨架
 - `apps/shared/types`: ida/idi 共享类型骨架
 - `apps/shared/proto`: ida/idi 与 Python 服务共享协议骨架
-- `platform/governance-python`: 独立治理引擎骨架
