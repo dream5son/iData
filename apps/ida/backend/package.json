@@ -1,7 +1,0 @@
-{
-  "name": "@idata/ida-backend",
-  "version": "0.1.0",
-  "private": true,
-  "description": "IDA backend skeleton",
-  "type": "module"
-}
