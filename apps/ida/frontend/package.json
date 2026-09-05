@@ -1,0 +1,7 @@
+{
+  "name": "@idata/ida-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "IDA frontend skeleton",
+  "type": "module"
+}

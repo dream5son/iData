@@ -1,0 +1,5 @@
+[project]
+name = "idi-backend"
+version = "0.1.0"
+description = "IDI Python backend skeleton"
+requires-python = ">=3.11"

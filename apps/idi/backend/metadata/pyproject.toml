@@ -1,0 +1,5 @@
+[project]
+name = "idi-metadata"
+version = "0.1.0"
+description = "IDI metadata skeleton"
+requires-python = ">=3.11"
