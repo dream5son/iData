@@ -31,3 +31,9 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+*.egg-info/
+.pytest_cache/
+.next/
+
+# IDI local data
+/tmp/

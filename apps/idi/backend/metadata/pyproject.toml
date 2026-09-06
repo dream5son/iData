@@ -1,5 +1,16 @@
 [project]
 name = "idi-metadata"
 version = "0.1.0"
-description = "IDI metadata skeleton"
+description = "IDI metadata extract, sync, diff, and snapshot"
 requires-python = ">=3.11"
+dependencies = [
+  "sqlalchemy>=2.0.30",
+  "croniter>=2.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

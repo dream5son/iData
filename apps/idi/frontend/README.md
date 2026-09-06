@@ -1,3 +1,14 @@
 # IDI Frontend
 
-实施工程师侧前端骨架，预留数据源接入、权限配置、Playbook 配置与治理管理页面结构。
+实施工程师治理台（Next.js App Router）。
+
+## 本地运行
+
+```bash
+cd apps/idi/frontend
+npm install
+export NEXT_PUBLIC_IDI_API_BASE=http://127.0.0.1:8000
+npm run dev
+```
+
+打开 http://127.0.0.1:3000 。

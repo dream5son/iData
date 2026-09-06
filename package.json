@@ -2,12 +2,14 @@
   "name": "idata",
   "version": "0.1.0",
   "private": true,
-  "description": "iData monorepo skeleton",
+  "description": "iData monorepo",
   "workspaces": [
-    "apps/ida/frontend",
-    "apps/ida/backend",
     "apps/idi/frontend",
     "apps/shared/types",
     "apps/shared/proto"
-  ]
+  ],
+  "scripts": {
+    "dev:idi-frontend": "npm run dev -w @idata/idi-frontend",
+    "build:idi-frontend": "npm run build -w @idata/idi-frontend"
+  }
 }
