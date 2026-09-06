@@ -1,0 +1,7 @@
+Metadata-Version: 2.4
+Name: idi-metadata
+Version: 0.1.0
+Summary: IDI metadata extract, sync, diff, and snapshot
+Requires-Python: >=3.11
+Requires-Dist: sqlalchemy>=2.0.30
+Requires-Dist: croniter>=2.0.0

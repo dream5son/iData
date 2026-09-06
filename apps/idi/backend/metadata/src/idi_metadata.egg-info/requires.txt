@@ -1,0 +1,2 @@
+sqlalchemy>=2.0.30
+croniter>=2.0.0
