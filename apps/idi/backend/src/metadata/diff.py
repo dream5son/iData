@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from idi_backend.domain import Catalog, DriftKind, DriftRecord, TableMeta, new_id, utcnow
+from infra.ids import new_id, utcnow
+from metadata.models import Catalog, DriftKind, DriftRecord, TableMeta
 
 
 def _col_sig(col) -> str:

@@ -1,23 +1,22 @@
-"""Incremental sync with drift detection."""
+"""Incremental sync with drift detection and schedule helpers."""
 
 from __future__ import annotations
 
 from croniter import croniter
 
-from idi_backend.adapters import get_adapter
-from idi_backend.domain import (
-    Catalog,
-    DataSourceStatus,
-    Job,
-    JobError,
-    JobKind,
-    JobStatus,
-    new_id,
-    utcnow,
-)
-from idi_backend.store import Store
-from idi_metadata.diff import diff_catalogs
-from idi_metadata.extract import MetadataBusyError, create_snapshot_from_catalog
+from datasources.models import DataSource, DataSourceStatus
+from infra.dialects import get_adapter
+from infra.ids import new_id, utcnow
+from infra.store import Store
+from metadata.diff import diff_catalogs
+from metadata.extract import MetadataBusyError, create_snapshot_from_catalog
+from metadata.models import Catalog, Job, JobError, JobKind, JobStatus
+
+
+class ValidationError(ValueError):
+    def __init__(self, errors: dict[str, str]):
+        super().__init__("validation failed")
+        self.errors = errors
 
 
 def validate_cron(expr: str) -> bool:
@@ -30,6 +29,40 @@ def validate_cron(expr: str) -> bool:
 
 def next_cron_time(expr: str):
     return croniter(expr, utcnow()).get_next(type(utcnow()))
+
+
+def set_schedule(store: Store, ds_id: str, enabled: bool, cron: str | None) -> DataSource:
+    ds = store.get_datasource(ds_id)
+    if not ds:
+        raise KeyError("数据源不存在")
+    if enabled:
+        if not cron or not validate_cron(cron):
+            raise ValidationError({"sync_cron": "非法 Cron 表达式"})
+        ds.sync_enabled = True
+        ds.sync_cron = cron
+        ds.next_sync_at = next_cron_time(cron)
+    else:
+        ds.sync_enabled = False
+        ds.next_sync_at = None
+        if cron is not None:
+            if cron and not validate_cron(cron):
+                raise ValidationError({"sync_cron": "非法 Cron 表达式"})
+            ds.sync_cron = cron or ds.sync_cron
+    ds.updated_at = utcnow()
+    return store.save_datasource(ds)
+
+
+def tick_schedules(store: Store) -> list[str]:
+    """Run due sync jobs. Returns datasource ids processed."""
+    ran: list[str] = []
+    now = utcnow()
+    for ds in store.list_datasources():
+        if not ds.sync_enabled or not ds.sync_cron or not ds.next_sync_at:
+            continue
+        if ds.next_sync_at <= now:
+            run_sync(store, ds.id, scheduled=True)
+            ran.append(ds.id)
+    return ran
 
 
 def run_sync(store: Store, datasource_id: str, *, scheduled: bool = False) -> Job:

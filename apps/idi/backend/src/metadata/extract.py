@@ -2,20 +2,11 @@
 
 from __future__ import annotations
 
-from idi_backend.adapters import get_adapter
-from idi_backend.domain import (
-    Catalog,
-    DataSource,
-    DataSourceStatus,
-    Job,
-    JobError,
-    JobKind,
-    JobStatus,
-    Snapshot,
-    new_id,
-    utcnow,
-)
-from idi_backend.store import Store
+from datasources.models import DataSource, DataSourceStatus
+from infra.dialects import get_adapter
+from infra.ids import new_id, utcnow
+from infra.store import Store
+from metadata.models import Catalog, Job, JobError, JobKind, JobStatus, Snapshot
 
 
 class MetadataBusyError(RuntimeError):

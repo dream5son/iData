@@ -10,17 +10,17 @@ from typing import Any
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import Engine
 
-from idi_backend.domain import (
-    ColumnMeta,
+from datasources.models import (
+    DEFAULT_PORTS,
+    DIALECT_LABELS,
     ConnectionConfig,
     ConnectionTestReport,
     Dialect,
-    IndexMeta,
     StepOutcome,
-    TableMeta,
     TestStepResult,
-    utcnow,
 )
+from infra.ids import utcnow
+from metadata.models import ColumnMeta, IndexMeta, TableMeta
 
 TEST_STEP_NAMES = [
     "network",
@@ -302,8 +302,6 @@ def get_adapter(dialect: Dialect) -> DialectAdapter:
 
 
 def list_dialects() -> list[dict[str, Any]]:
-    from idi_backend.domain import DEFAULT_PORTS, DIALECT_LABELS
-
     return [
         {
             "id": d.value,

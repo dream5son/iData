@@ -8,7 +8,7 @@ import threading
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 from cryptography.fernet import Fernet
 from sqlalchemy import (
@@ -22,16 +22,22 @@ from sqlalchemy import (
     delete,
     select,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-from idi_backend.domain import (
-    Catalog,
-    ColumnMeta,
+from datasources.models import (
+    SECRET_KEYS,
     ConnectionConfig,
     ConnectionTestReport,
     DataSource,
     DataSourceStatus,
     Dialect,
+    StepOutcome,
+    TestStepResult,
+)
+from infra.ids import new_id
+from metadata.models import (
+    Catalog,
+    ColumnMeta,
     DriftKind,
     DriftRecord,
     IndexMeta,
@@ -39,13 +45,8 @@ from idi_backend.domain import (
     JobError,
     JobKind,
     JobStatus,
-    SECRET_KEYS,
     Snapshot,
-    StepOutcome,
     TableMeta,
-    TestStepResult,
-    new_id,
-    utcnow,
 )
 
 
@@ -120,10 +121,6 @@ class SnapshotRow(Base):
     partial: Mapped[bool] = mapped_column(Boolean, default=False)
     drift_count: Mapped[int] = mapped_column(Integer, default=0)
     payload_json: Mapped[str] = mapped_column(Text)
-
-
-def _dt(value: datetime | None) -> str | None:
-    return value.isoformat() if value else None
 
 
 def table_to_dict(table: TableMeta) -> dict[str, Any]:

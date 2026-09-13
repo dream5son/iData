@@ -10,9 +10,8 @@ Intelligent Data Agent monorepo.
 
 ```bash
 cd apps/idi/backend
-python3 -m pip install -e . -e ./metadata
-PYTHONPATH=src:metadata/src IDI_DATA_DIR=/tmp/idi-data \
-  python3 -m uvicorn idi_backend.api.app:app --host 127.0.0.1 --port 8000
+python3 -m pip install -e .
+IDI_DATA_DIR=/tmp/idi-data python3 src/main.py
 ```
 
 ### 启动前端
@@ -27,5 +26,5 @@ NEXT_PUBLIC_IDI_API_BASE=http://127.0.0.1:8000 npm run dev
 
 ```bash
 cd apps/idi/backend
-PYTHONPATH=src:metadata/src python3 -m pytest -q
+PYTHONPATH=src python3 -m pytest -q
 ```

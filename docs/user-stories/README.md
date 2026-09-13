@@ -45,7 +45,7 @@ US-001 接入数据源
 | 能力 | 落点 |
 | :--- | :--- |
 | 数据源接入与管理 UI | `apps/idi/frontend` |
-| 连接配置与管理接口 | `apps/idi/backend` |
-| Schema 反射、同步与快照 | `apps/idi/backend/metadata` |
+| 连接配置与管理接口 | `apps/idi/backend/src/datasources` |
+| Schema 反射、同步与快照 | `apps/idi/backend/src/metadata` |
 
 技术约束见 [技术栈](../tech-stack.md)：Python 3.11 + FastAPI + SQLAlchemy 2.0，秒级连接校验。

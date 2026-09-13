@@ -16,8 +16,7 @@ TEST_ROOT.mkdir(parents=True, exist_ok=True)
 os.environ["IDI_DATA_DIR"] = str(TEST_ROOT / "data")
 os.environ["IDI_FERNET_KEY"] = Fernet.generate_key().decode()
 
-from idi_backend.api.app import app, store  # noqa: E402
-from idi_backend.domain import DataSourceStatus  # noqa: E402
+from app import app, store  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
@@ -26,7 +25,7 @@ def clean_store(tmp_path):
     store.engine.dispose()
     store.db_url = f"sqlite+pysqlite:///{db_path}"
     store.engine = __import__("sqlalchemy").create_engine(store.db_url, future=True)
-    from idi_backend.store.db import Base
+    from infra.store import Base
 
     Base.metadata.create_all(store.engine)
     store.Session = __import__("sqlalchemy.orm", fromlist=["sessionmaker"]).sessionmaker(
