@@ -5,6 +5,7 @@ from __future__ import annotations
 import socket
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 from sqlalchemy import create_engine, inspect, text
@@ -111,14 +112,10 @@ class DialectAdapter(ABC):
             engine.dispose()
 
     def _check_network(self, params: dict[str, Any]) -> None:
-        if params.get("__sqlite_path"):
-            return
         host = params.get("host") or params.get("account") or params.get("endpoint")
         port = int(params.get("port") or 0)
         if not host:
             raise ConnectionError("缺少主机或 endpoint")
-        if host in {"demo.local", "localhost", "127.0.0.1"} and params.get("__skip_tcp"):
-            return
         if not port:
             raise ConnectionError("缺少端口")
         with socket.create_connection((host, port), timeout=float(params.get("connect_timeout", 3))):
@@ -212,7 +209,7 @@ class DialectAdapter(ABC):
 
 
 class SqlAlchemyUrlAdapter(DialectAdapter):
-    """Shared adapter for URL-based SQLAlchemy dialects, with SQLite bridge for local proof."""
+    """Shared adapter for URL-based SQLAlchemy dialects."""
 
     def __init__(self, dialect: Dialect, driver_prefix: str, required: list[str]):
         self.dialect = dialect
@@ -224,9 +221,6 @@ class SqlAlchemyUrlAdapter(DialectAdapter):
 
     def _create_engine(self, config: ConnectionConfig) -> Engine:
         params = config.params
-        sqlite_path = params.get("__sqlite_path")
-        if sqlite_path:
-            return create_engine(f"sqlite+pysqlite:///{sqlite_path}", future=True)
         user = params.get("username") or params.get("user") or ""
         password = params.get("password") or ""
         host = params.get("host")
@@ -234,6 +228,24 @@ class SqlAlchemyUrlAdapter(DialectAdapter):
         database = params.get("database") or params.get("project") or ""
         url = f"{self.driver_prefix}://{user}:{password}@{host}:{port}/{database}"
         return create_engine(url, future=True, pool_pre_ping=True)
+
+
+class SqliteAdapter(DialectAdapter):
+    dialect = Dialect.SQLITE
+
+    def required_params(self) -> list[str]:
+        return ["path"]
+
+    def _check_network(self, params: dict[str, Any]) -> None:
+        path = str(params.get("path") or "").strip()
+        if not path:
+            raise ConnectionError("缺少数据库文件路径")
+        if not Path(path).is_file():
+            raise ConnectionError(f"数据库文件不存在: {path}")
+
+    def _create_engine(self, config: ConnectionConfig) -> Engine:
+        path = str(config.params["path"]).strip()
+        return create_engine(f"sqlite+pysqlite:///{path}", future=True)
 
 
 class HostPortAdapter(SqlAlchemyUrlAdapter):
@@ -249,8 +261,6 @@ class SnowflakeAdapter(DialectAdapter):
         return ["account", "username", "password", "database", "warehouse"]
 
     def _create_engine(self, config: ConnectionConfig) -> Engine:
-        if config.params.get("__sqlite_path"):
-            return create_engine(f"sqlite+pysqlite:///{config.params['__sqlite_path']}", future=True)
         p = config.params
         url = (
             f"snowflake://{p['username']}:{p['password']}@{p['account']}/"
@@ -266,8 +276,6 @@ class BigQueryAdapter(DialectAdapter):
         return ["project", "dataset"]
 
     def _create_engine(self, config: ConnectionConfig) -> Engine:
-        if config.params.get("__sqlite_path"):
-            return create_engine(f"sqlite+pysqlite:///{config.params['__sqlite_path']}", future=True)
         project = config.params["project"]
         return create_engine(f"bigquery://{project}", future=True)
 
@@ -279,8 +287,6 @@ class DatabricksAdapter(DialectAdapter):
         return ["host", "http_path", "token"]
 
     def _create_engine(self, config: ConnectionConfig) -> Engine:
-        if config.params.get("__sqlite_path"):
-            return create_engine(f"sqlite+pysqlite:///{config.params['__sqlite_path']}", future=True)
         p = config.params
         host = p["host"].replace("https://", "")
         url = f"databricks://token:{p['token']}@{host}?http_path={p['http_path']}"
@@ -338,6 +344,7 @@ def _bootstrap() -> None:
     _register(SnowflakeAdapter())
     _register(BigQueryAdapter())
     _register(DatabricksAdapter())
+    _register(SqliteAdapter())
 
 
 _bootstrap()

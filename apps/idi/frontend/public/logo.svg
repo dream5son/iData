@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 100 100">
+  <defs>
+    <!-- 背景渐变 -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0A0F1D"/>
+      <stop offset="100%" stop-color="#141A2E"/>
+    </linearGradient>
+    
+    <!-- 主渐变：青色到紫色 -->
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#7A00FF"/>
+    </linearGradient>
+
+    <!-- 发光滤镜 -->
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="100" height="100" rx="24" fill="url(#bgGrad)"/>
+  
+  <!-- 科技感装饰边框 -->
+  <rect x="2" y="2" width="96" height="96" rx="22" fill="none" stroke="#00E5FF" stroke-width="1" opacity="0.1"/>
+  <circle cx="50" cy="50" r="42" fill="none" stroke="#00E5FF" stroke-width="1" opacity="0.1"/>
+  <circle cx="50" cy="50" r="32" fill="none" stroke="#7A00FF" stroke-width="1" opacity="0.1" stroke-dasharray="4 4"/>
+
+  <!-- 数据节点连接线 -->
+  <g stroke-width="2" opacity="0.6">
+    <!-- 左侧节点连接（青色） -->
+    <path d="M 26 52 L 40 52 M 26 72 L 40 72 M 26 52 L 40 62 M 26 72 L 40 82" stroke="#00E5FF"/>
+    <!-- 右侧节点连接（紫色） -->
+    <path d="M 74 52 L 60 52 M 74 72 L 60 72 M 74 52 L 60 62 M 74 72 L 60 82" stroke="#7A00FF"/>
+  </g>
+
+  <!-- 数据节点（小圆点） -->
+  <g>
+    <!-- 左侧节点 -->
+    <circle cx="24" cy="52" r="5" fill="#00E5FF"/>
+    <circle cx="24" cy="72" r="5" fill="#00E5FF"/>
+    <!-- 右侧节点 -->
+    <circle cx="76" cy="52" r="5" fill="#7A00FF"/>
+    <circle cx="76" cy="72" r="5" fill="#7A00FF"/>
+  </g>
+
+  <!-- 漂浮的数据方块 -->
+  <g fill="#00E5FF" opacity="0.4">
+    <rect x="16" y="38" width="3" height="3" rx="1"/>
+    <rect x="81" y="38" width="3" height="3" rx="1"/>
+    <rect x="16" y="84" width="3" height="3" rx="1"/>
+    <rect x="81" y="84" width="3" height="3" rx="1"/>
+  </g>
+
+  <!-- 中央“i”主体（代表数据智能体核心） -->
+  <!-- i 的圆点 -->
+  <circle cx="50" cy="26" r="12" fill="url(#mainGrad)" filter="url(#glow)"/>
+  
+  <!-- i 的主干 -->
+  <rect x="40" y="42" width="20" height="44" rx="10" fill="url(#mainGrad)"/>
+</svg>

@@ -1,4 +1,4 @@
-"""End-to-end coverage for US-001 through US-006 against SQLite bridge."""
+"""End-to-end coverage for US-001 through US-006 against a real SQLite dialect."""
 
 from __future__ import annotations
 
@@ -50,7 +50,16 @@ def sqlite_source(tmp_path):
     return str(path)
 
 
-def _create_payload(sqlite_path: str, name: str = "生产数仓") -> dict:
+def _sqlite_payload(sqlite_path: str, name: str = "生产数仓") -> dict:
+    return {
+        "name": name,
+        "dialect": "sqlite",
+        "readonly_intent": True,
+        "params": {"path": sqlite_path},
+    }
+
+
+def _pg_payload(name: str = "生产数仓") -> dict:
     return {
         "name": name,
         "dialect": "postgresql",
@@ -61,8 +70,6 @@ def _create_payload(sqlite_path: str, name: str = "生产数仓") -> dict:
             "database": "demo",
             "username": "ro",
             "password": "secret-pass",
-            "__sqlite_path": sqlite_path,
-            "__skip_tcp": True,
         },
     }
 
@@ -70,11 +77,15 @@ def _create_payload(sqlite_path: str, name: str = "生产数仓") -> dict:
 def test_dialects_cover_prd_list(client):
     data = client.get("/api/dialects").json()
     ids = {d["id"] for d in data}
-    assert len(ids) == 14
+    assert len(ids) == 15
     assert "postgresql" in ids and "snowflake" in ids and "bigquery" in ids
+    sqlite = next(d for d in data if d["id"] == "sqlite")
+    assert sqlite["label"] == "SQLite"
+    assert sqlite["required_params"] == ["path"]
+    assert sqlite["default_port"] is None
 
 
-def test_create_list_secret_mask_and_validation(client, sqlite_source):
+def test_create_list_secret_mask_and_validation(client):
     bad = client.post(
         "/api/datasources",
         json={"name": "", "dialect": "postgresql", "params": {"host": "x", "port": "abc"}},
@@ -82,13 +93,13 @@ def test_create_list_secret_mask_and_validation(client, sqlite_source):
     assert bad.status_code == 400
     assert "name" in bad.json()["detail"]
 
-    created = client.post("/api/datasources", json=_create_payload(sqlite_source)).json()
+    created = client.post("/api/datasources", json=_pg_payload()).json()
     assert created["status"] == "draft"
     assert created["readonly_intent"] is True
     assert created["params"]["password"] is None
     assert created["params"]["password__configured"] is True
 
-    conflict = client.post("/api/datasources", json=_create_payload(sqlite_source, name="生产数仓"))
+    conflict = client.post("/api/datasources", json=_pg_payload(name="生产数仓"))
     assert conflict.status_code == 400
 
     listed = client.get("/api/datasources", params={"q": "生产"}).json()
@@ -96,13 +107,9 @@ def test_create_list_secret_mask_and_validation(client, sqlite_source):
     assert "secret-pass" not in str(listed)
 
 
-def test_edit_keeps_password_and_disable_enable(client, sqlite_source):
-    ds = client.post("/api/datasources", json=_create_payload(sqlite_source)).json()
+def test_edit_keeps_password(client):
+    ds = client.post("/api/datasources", json=_pg_payload()).json()
     ds_id = ds["id"]
-    client.post(f"/api/datasources/{ds_id}/test")
-    ready = client.get(f"/api/datasources/{ds_id}").json()
-    assert ready["status"] == "ready"
-
     patched = client.patch(
         f"/api/datasources/{ds_id}",
         json={"params": {"host": "demo.local", "port": "5432", "password": ""}},
@@ -111,7 +118,14 @@ def test_edit_keeps_password_and_disable_enable(client, sqlite_source):
     stored = store.get_datasource(ds_id)
     assert stored.config.params["password"] == "secret-pass"
 
+
+def test_disable_enable(client, sqlite_source):
+    ds = client.post("/api/datasources", json=_sqlite_payload(sqlite_source)).json()
+    ds_id = ds["id"]
     client.post(f"/api/datasources/{ds_id}/test")
+    ready = client.get(f"/api/datasources/{ds_id}").json()
+    assert ready["status"] == "ready"
+
     client.post(f"/api/datasources/{ds_id}/disable")
     disabled = client.get(f"/api/datasources/{ds_id}").json()
     assert disabled["status"] == "disabled"
@@ -124,7 +138,7 @@ def test_edit_keeps_password_and_disable_enable(client, sqlite_source):
 
 
 def test_connection_test_steps_and_auto_extract(client, sqlite_source):
-    ds = client.post("/api/datasources", json=_create_payload(sqlite_source)).json()
+    ds = client.post("/api/datasources", json=_sqlite_payload(sqlite_source)).json()
     ds_id = ds["id"]
     result = client.post(f"/api/datasources/{ds_id}/test").json()
     assert result["status"] == "ready"
@@ -146,10 +160,8 @@ def test_connection_test_steps_and_auto_extract(client, sqlite_source):
     assert users["indexes"]
 
 
-def test_network_failure_short_circuits(client, sqlite_source):
-    payload = _create_payload(sqlite_source, name="坏主机")
-    del payload["params"]["__sqlite_path"]
-    del payload["params"]["__skip_tcp"]
+def test_network_failure_short_circuits(client):
+    payload = _pg_payload(name="坏主机")
     payload["params"]["host"] = "203.0.113.1"
     payload["params"]["port"] = "1"
     ds = client.post("/api/datasources", json=payload).json()
@@ -161,7 +173,7 @@ def test_network_failure_short_circuits(client, sqlite_source):
 
 
 def test_delete_requires_cascade(client, sqlite_source):
-    ds = client.post("/api/datasources", json=_create_payload(sqlite_source)).json()
+    ds = client.post("/api/datasources", json=_sqlite_payload(sqlite_source)).json()
     client.post(f"/api/datasources/{ds['id']}/test")
     blocked = client.request(
         "DELETE",
@@ -179,7 +191,7 @@ def test_delete_requires_cascade(client, sqlite_source):
 
 
 def test_sync_drift_and_snapshot_versioning(client, sqlite_source, tmp_path):
-    ds = client.post("/api/datasources", json=_create_payload(sqlite_source)).json()
+    ds = client.post("/api/datasources", json=_sqlite_payload(sqlite_source)).json()
     ds_id = ds["id"]
     client.post(f"/api/datasources/{ds_id}/test")
     snaps = client.get(f"/api/datasources/{ds_id}/snapshots").json()
@@ -224,6 +236,6 @@ def test_sync_drift_and_snapshot_versioning(client, sqlite_source, tmp_path):
 
 
 def test_non_ready_cannot_extract(client, sqlite_source):
-    ds = client.post("/api/datasources", json=_create_payload(sqlite_source)).json()
+    ds = client.post("/api/datasources", json=_sqlite_payload(sqlite_source)).json()
     resp = client.post(f"/api/datasources/{ds['id']}/extract")
     assert resp.status_code == 400

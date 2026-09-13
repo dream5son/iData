@@ -38,6 +38,7 @@ class Dialect(str, Enum):
     STARROCKS = "starrocks"
     TIDB = "tidb"
     GREENPLUM = "greenplum"
+    SQLITE = "sqlite"
 
 
 DIALECT_LABELS: dict[Dialect, str] = {
@@ -55,6 +56,7 @@ DIALECT_LABELS: dict[Dialect, str] = {
     Dialect.STARROCKS: "StarRocks",
     Dialect.TIDB: "TiDB",
     Dialect.GREENPLUM: "Greenplum",
+    Dialect.SQLITE: "SQLite",
 }
 
 DEFAULT_PORTS: dict[Dialect, int] = {

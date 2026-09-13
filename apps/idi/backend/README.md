@@ -17,4 +17,4 @@ python3 src/main.py
 PYTHONPATH=src python3 -m pytest -q
 ```
 
-本地无真实库时，创建数据源可在 `params` 中设置 `__sqlite_path` 与 `__skip_tcp`，走 SQLite 桥接完成测连与反射。
+本地无其它库时，创建数据源可选方言 `sqlite`，在 `params.path` 中填写已存在的 SQLite 文件路径，即可完成测连与反射。

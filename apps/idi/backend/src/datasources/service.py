@@ -82,9 +82,6 @@ def create_datasource(store: Store, payload: dict[str, Any]) -> DataSource:
         if "port" in params and params["port"] is not None and not str(params["port"]).isdigit():
             errors["port"] = "端口须为数字"
         missing = adapter.validate_params(params)
-        # Allow sqlite bridge to omit live secrets in local proof mode
-        if params.get("__sqlite_path"):
-            missing = [m for m in missing if m not in {"password", "username", "token"}]
         for key in missing:
             errors[key] = f"{key} 为必填项"
 
